@@ -26,12 +26,46 @@ public class CalcolatriceRPN {
     private JButton Punto;
     private JButton OpenParenthesis;
     private JButton CloseParenthesis;
+    private JLabel Espressione;
     String ESP ="";
     public CalcolatriceRPN() {
-        a0.addActionListener(new ActionListener() {
+
+        ActionListener listener = new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                Add(a0.getText());
+                JButton surceButton = (JButton) e.getSource();
+                Add(surceButton.getText());
+            }
+        };
+        a9.addActionListener(listener);
+        a6.addActionListener(listener);
+        a3.addActionListener(listener);
+        a7.addActionListener(listener);
+        a8.addActionListener(listener);
+        a4.addActionListener(listener);
+        a1.addActionListener(listener);
+        a0.addActionListener(listener);
+        a5.addActionListener(listener);
+        a2.addActionListener(listener);
+        Moltiplication.addActionListener(listener);
+        Plus.addActionListener(listener);
+        button15.addActionListener(listener);
+        Division.addActionListener(listener);
+        Punto.addActionListener(listener);
+        OpenParenthesis.addActionListener(listener);
+        CloseParenthesis.addActionListener(listener);
+        CE.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                ESP = "";
+                Result.setText(ESP);
+                Espressione.setText(ESP);
+            }
+        });
+        Enter.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Result.setText(ESP);
             }
         });
     }
@@ -50,6 +84,6 @@ public class CalcolatriceRPN {
     }
     public void  Add(String a){
         ESP +=a;
-        Result.setText(ESP);
+        Espressione.setText(ESP);
     }
 }
