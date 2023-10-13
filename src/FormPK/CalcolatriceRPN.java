@@ -30,6 +30,8 @@ public class CalcolatriceRPN {
     private JButton OpenParenthesis;
     private JButton CloseParenthesis;
     private JLabel Espressione;
+    private JLabel PostFissaL;
+
     String ESP ="";
     public CalcolatriceRPN() {
 
@@ -61,8 +63,9 @@ public class CalcolatriceRPN {
             @Override
             public void actionPerformed(ActionEvent e) { //CE
                 ESP = "";
-                Result.setText(ESP);
-                Espressione.setText(ESP);
+                PostFissaL.setText(".................");
+                Result.setText(".................");
+                Espressione.setText(".................");
             }
         });
 
@@ -73,7 +76,7 @@ public class CalcolatriceRPN {
             @Override
             public void actionPerformed(ActionEvent e) {
                 Result.setText(ESP);
-                Result.setText( PostFix(ESP));
+                Result.setText( PostFix(ESP).toString());
             }
         });
     }
@@ -82,54 +85,66 @@ public class CalcolatriceRPN {
         Espressione.setText(ESP);
     }
 
-    public String PostFix(String ESP){
+    public Double PostFix(String ESP){
+        //VARIABILI
         List<String> in = splitStringToList(ESP);
         List<String> out = new LinkedList<>();
-
-
         Stack<String> operatori = new Stack<>();
-/*
-       String a = "";
-        for (String token : in) {
-            a+=token+="|";
-        }
-        return a;
-*/
 
         int counterout = 0;
-String corrente ;
+        String corrente ;
+
+//*********************************
+
     for(int i =0 ;i<in.size();i++){
+        //PRENDE IL CORRENTE
         corrente = in.get(i);
 
-        if(!Objects.equals(corrente,"X") && !Objects.equals(corrente,"/") && !Objects.equals(corrente,"+") && !Objects.equals(corrente,"-")){
-            out.add(counterout, corrente); //se è un numero lo agiunge
-        }else {//OPERANDI
+        if(!Objects.equals(corrente,"X") && !Objects.equals(corrente,"/") && !Objects.equals(corrente,"+") && !Objects.equals(corrente,"-") && !Objects.equals(corrente,"(")&& !Objects.equals(corrente,")")){
+            //AGGIUNGE I NUMERI
+            out.add(counterout, corrente);
+            counterout++;
+        }
+        //*********************************OPERANDI*********************************
+        else {
+
+            //PARENTESI APERTA
+            if( Objects.equals(corrente,"(")){
+                operatori.push(corrente);
+            }
 
 
-            if(corrente =="("){
+            //PARENTESI CHIUSA
+            else if(  Objects.equals(corrente,")")) {
 
-            }else if(corrente ==")") {
+                while(  !Objects.equals(operatori.peek(),"(")){
+                    out.add(counterout,operatori.pop());
+                    counterout++;
+                }//ECCEZIONE CICLO INFINITO ???
+                operatori.pop();
 
-            }else if(!operatori.isEmpty()) {
-             if (ValutaPrecedenza(operatori.peek()) < ValutaPrecedenza(corrente) || operatori.peek() == "(") {
+            }
+            else if(!operatori.isEmpty()) {
+             if (ValutaPrecedenza(operatori.peek()) < ValutaPrecedenza(corrente)   ) {
                     operatori.push(corrente);
                 }
              else if(ValutaPrecedenza(operatori.peek()) >= ValutaPrecedenza(corrente) ){
-                out.add(counterout,operatori.pop());
-                operatori.push(corrente);
-
-
-                //Controllo ricorsivo tipo ??
+                 while( !operatori.isEmpty()&&ValutaPrecedenza(operatori.peek()) >= ValutaPrecedenza(corrente)  ){
+                     out.add(counterout,operatori.pop());
+                        counterout++;
+                 }
+                 operatori.push(corrente);
              }
-
-
-
 
             }else{
                 operatori.push(corrente);//nel caso non sia vuoto lo stack cosi che non dia errore nel peek
             }
 
         }
+
+
+
+        //*********************************
         for (String token : in) {
             System.out.print(token +"  ");
         }
@@ -142,15 +157,41 @@ String corrente ;
             System.out.print(token +"  ");
         }
         System.out.print("\n|||||||\n");
-
+        //*********************************
     }
 
+    //RICOPIA I RIMANENTI NELLE OPERAZIONI SUK RISULTATO
+     while(!operatori.isEmpty()){
+         out.add(counterout,operatori.pop());
+         counterout++;
+     }
 
-        String a = "";
-        for (String token : out) {
-            a+=token+="°";
+
+     //******************************
+        for (String token : in) {
+            System.out.print(token +"  ");
         }
-        return a;
+        System.out.print("\n");
+        for (String token : operatori) {
+            System.out.print(token +"  ");
+        }
+        System.out.print("\n");
+        for (String token : out) {
+            System.out.print(token +"  ");
+        }
+
+        System.out.print("\n|||||||\n");
+        //******************************
+
+//RISULTATI
+
+        String Postfissa = "";
+        for (String token : out) {
+            Postfissa=Postfissa+token+" ";
+        }
+        PostFissaL.setText(Postfissa);//Scrive la notazione postfissa
+        Double risultato = CalcolaPostfissa(Postfissa);
+        return risultato;
 
 
 
@@ -190,7 +231,43 @@ public int ValutaPrecedenza(String a){
 }
 
 
+    public static double CalcolaPostfissa(String expression) {
+        Stack<Double> stack = new Stack<>();
+        String[] tokens = expression.split(" ");
 
+        for (String token : tokens) {
+            if (token.matches("-?\\d+(\\.\\d+)?")) {
+                // Se il token è un numero va nello stack
+                stack.push(Double.parseDouble(token));
+            } else {
+                // Se il token è un operatore si calcola
+                double o2 = stack.pop();
+                double o1 = stack.pop();
+                double result = EseguiOperazione(o1, o2, token);
+                stack.push(result);
+            }
+        }
+
+        return stack.pop(); // Il risultato finale è l'elemento finale nello stack
+    }
+
+    public static double EseguiOperazione(double operand1, double operand2, String operator) {
+        switch (operator) {
+            case "+":
+                return operand1 + operand2;
+            case "-":
+                return operand1 - operand2;
+            case "X":
+                return operand1 * operand2;
+            case "/":
+                if (operand2 == 0) {
+                    throw new ArithmeticException("Divisione per zero");
+                }
+                return operand1 / operand2;
+            default:
+                throw new IllegalArgumentException("Operatore non valido: " + operator);
+        }
+    }
 
 
 
